@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="utf-8" />
     <title>crisp-game-lib</title>
     <meta
-      name="viewport"
-      content="width=device-width, height=device-height,
-    user-scalable=no, initial-scale=1, maximum-scale=1"
+        name="viewport"
+        content="width=device-width, height=device-height, user-scalable=no, initial-scale=1, maximum-scale=1"
     />
     <script src="https://unpkg.com/sounds-some-sounds@1.0.5/build/index.js"></script>
     <script src="https://unpkg.com/gif-capture-canvas@1.1.0/build/index.js"></script>
@@ -14,14 +13,20 @@
     <script src="https://unpkg.com/pixi.js@5.3.0/dist/pixi.min.js"></script>
     <script src="https://unpkg.com/pixi-filters@3.1.1/dist/pixi-filters.js"></script>
     <script>
-      var module = {};
+        var module = {};
     </script>
     <script src="https://unpkg.com/lodash.clonedeep@4.5.0/index.js"></script>
     <script src="bundle.js"></script>
+    <script src = "Prototype/main.js"></script>
     <script>
-      addGameScript();
-      window.addEventListener("load", onLoad);
+        addGameScript();
+        window.addEventListener("load", onLoad);
     </script>
-  </head>
-  <body style="background: #ddd"></body>
+</head>
+<body style="background: #ddd">
+    <!-- Add a button for the game -->
+    <!--<button id="game-button">Press Space Bar</button>
+    <!-- Add an element to display the score -->
+    <p id="score-display">Score: 0</p>
+</body>
 </html>
