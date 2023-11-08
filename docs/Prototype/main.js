@@ -1,3 +1,4 @@
+//http://localhost:4000/?prototype
 title = "";
 
 description = `
@@ -29,6 +30,7 @@ let destination ={
 
 };
 //CUP THINGS
+let countedDroplets = [];
 let topY = 30; //middle of the screen
 let bottomY = 60; //where the horizontal bottom of cup lies on y axis
 let topDistance=18; // distance between the lines on top part of cup
@@ -92,7 +94,7 @@ function update() {
 		remove(drops, (d) => {
 		  color("blue");
 		  let droplet = box(d, 3);
-	  
+
 		  // Check if a drip collides with the cup
 		  if (droplet.isColliding.rect.cyan) {
 			if (d.x > 50 - topDistance && d.x < 50 - bottomDistance) {
@@ -106,29 +108,35 @@ function update() {
 		  }
 
 		if ((d.y > bottomY - tier*3 -6 && d.y < bottomY - tier*3+3) && (d.x > 50 - topDistance && d.x < 50 + topDistance)) {
-			
+
 			// If tier is full, move to the next empty tier
 			console.log(Math.round(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance)));
 			if(tiers[tier].length >= Math.ceil(1/surfaceTension) + Math.ceil(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance))) {
 				tier++;
 			}
 			if (tier !== -1) {
-				//IF IT GETS HERE THAT MEANS THE WATER DROPLET HAS OFFICIALLY ENTERED THE CUP 
+				//IF IT GETS HERE THAT MEANS THE WATER DROPLET HAS OFFICIALLY ENTERED THE CUP
 				//AND WILL BEHAVE WIL WATER IN CUP PHYSICS
 				d.y = bottomY - tier*3 -3;
 				tiers[tier].push(d); // Add the vector to the corresponding tier
 				tiers[tier] = dropletSorting(tiers[tier]);
+				score++;
 				settle();
 				return true;
 			}
 		}else {
-			d.y += drip + rnd(-0.1, 0.2);	
+			d.y += drip + rnd(-0.1, 0.2);
+			if (d.y > 99) { // remove pts if water outside cup
+                if (countedDroplets.indexOf(d) === -1) {
+                    score--;
+                    countedDroplets.push(d);
+                }
+            }
 		}
-
 		  return d.y > 102; //IF IT GETS HERE IT MEANS A WATER DROPLET FELL OFF SCREEN AND IS BEING DELETED
 		});
 	}
-	
+
 	// Apply water physics to droplets in each tier
 	settle();
 }
@@ -137,13 +145,13 @@ function settle() {
 	  const dropletSpacing = 3;
 	  const left = centerX - bottomDistance - cup.slant * index * dropletSpacing+2;
 	  const right = centerX + bottomDistance + cup.slant * index * dropletSpacing+2;
-  
+
 	  t.forEach((d, i) => {
 		// Gradually spread water droplets from left to right
 		const targetX = left + (i / t.length) * (right - left); // Adjusted for total length
 		const xOffset = targetX - d.x;
 		d.x += xOffset * 0.02; // Adjust the factor for gradual convergence
-		
+
 		// Apply surface tension to bring adjacent droplets together (slower convergence)
 		if (i > 0) {
 		  const prevDroplet = t[i - 1];
@@ -151,24 +159,25 @@ function settle() {
 		  const convergenceFactor = 0.2;
 		  d.x = Math.min(Math.max(d.x - distance * surfaceTension * convergenceFactor, left), right+1);
 		}
-  
+
 		// Clamp d.x within the range defined by left and right
 		d.x = Math.min(Math.max(d.x, left), right);
-  
+
 		// console.log(d);
 		color("blue");
 		box(d, 3);
+
 	  });
 	});
   }
-  
-  
+
+
 
 function dropletSorting(droplets){
   // Use the Array.sort() method to sort the list of vectors
   droplets.sort((a, b) => a.x - b.x);
 	//console.log(droplets);
-  // Return the sorted list	
+  // Return the sorted list
   return droplets;
 }
 /*
@@ -182,30 +191,30 @@ function dropletPhysics() {
 		const slant = (topDistance - bottomDistance) / (bottomY - topY);
 		const left = centerX - bottomDistance - slant * index * dropletSpacing;
 		const right = centerX + bottomDistance + (slant * index * dropletSpacing);
-		
+
 		console.log("left: " +left+ " right: " +right);
 		// Calculate left and right variables considering slanted sides
 
 		t.forEach((d, i) => {
 		  d.y = bottomY - index * 3-3;
-	
+
 		  // Calculate the horizontal position based on the index, alternating between left and right
 		  const targetX = i % 2 === 0 ? left + i / 2 * dropletSpacing : right - (i/2 * dropletSpacing);
 		  const xOffset = targetX - d.x;
 		  d.x += xOffset * 0.1; // Adjust the factor for gradual convergence
-	
+
 		  box(d, 3);
 		});
 	  });
 	}
   }*/
-  
+
 
 function sourceMovement(){
 	// Move the source back and forth
 	if(rnd(0,100)<1) source.direction *=-1;
 	source.pos.x += source.speed * source.direction;
-	
+
 	// Check if the source has reached the screen boundaries
 	if(source.pos.x < 20){
 		source.direction = 1;
@@ -216,7 +225,7 @@ function sourceMovement(){
 	}
 	// Add a random value within the stutter range to the position
 
-	if(source.pos.x > 1+source.stutter && source.pos.x < 100-source.stutter){//if in range where game won't break		
+	if(source.pos.x > 1+source.stutter && source.pos.x < 100-source.stutter){//if in range where game won't break
 		if(stutterCounter=3){
 			source.pos.x += rnd(source.stutter*-1, source.stutter);
 			stutterCounter =0;
@@ -226,5 +235,3 @@ function sourceMovement(){
 
 	return box(source.pos, {x: 9, y: 3});
 }
-
-  
