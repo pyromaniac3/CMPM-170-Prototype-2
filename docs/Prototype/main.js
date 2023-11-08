@@ -53,6 +53,7 @@ const centerX = 50;
 let tiers;
 let tier = 0;
 let dropCounter = 0; // Initialize a counter
+let stutterCounter = 0;
 function update() {
 	if (!ticks) { //init
 		//source.sprite = addWithCharCode(char, offset);
@@ -60,7 +61,7 @@ function update() {
 		drops = [];
 		source.pos = vec(50,20); //initial starting position
 		color("black");
-		source.sprite = box(source.pos, 16);
+		source.sprite = box(source.pos, {x: 9, y: 3});
 		destination = addWithCharCode(characters[0], 0);
 		destination.pos = vec(40,50);
 		// Calculate the number of layers (height) based on the given dimensions
@@ -73,13 +74,15 @@ function update() {
 	cup.left = line(vec(50 - topDistance, topY), vec(50 - bottomDistance,bottomY)); //left side, top -> bottom
 	cup.right = line(vec(50 + topDistance, topY), vec(50 + bottomDistance,bottomY)); //right side
 	cup.bottom = line(vec(50 - bottomDistance, bottomY),vec(50 + bottomDistance, bottomY)); //bottom horizontal, //left -> right
-
+	color("black");
 	source.sprite = sourceMovement();
 
 	if(input.isPressed){
-		if (dropCounter == 15) { //reduces amount of water coming out of source
-			// This block will execute as long as the counter is less than 20
-			drops.push(vec(source.pos.x + rnd(-0.1, 0.1), source.pos.y + source.drip.y));
+		if (dropCounter == 10) { //reduces amount of water coming out of source
+			// This block will execute as long as the counter is less than 10
+			drops.push(vec(source.pos.x - 3, source.pos.y + source.drip.y));
+			drops.push(vec(source.pos.x, source.pos.y + source.drip.y));
+			drops.push(vec(source.pos.x + 3	, source.pos.y + source.drip.y));
 			dropCounter = 0;
 		}
 		dropCounter++;
@@ -110,6 +113,8 @@ function update() {
 				tier++;
 			}
 			if (tier !== -1) {
+				//IF IT GETS HERE THAT MEANS THE WATER DROPLET HAS OFFICIALLY ENTERED THE CUP 
+				//AND WILL BEHAVE WIL WATER IN CUP PHYSICS
 				d.y = bottomY - tier*3 -3;
 				tiers[tier].push(d); // Add the vector to the corresponding tier
 				tiers[tier] = dropletSorting(tiers[tier]);
@@ -120,7 +125,7 @@ function update() {
 			d.y += drip + rnd(-0.1, 0.2);	
 		}
 
-		  return d.y > 102; //out of screen
+		  return d.y > 102; //IF IT GETS HERE IT MEANS A WATER DROPLET FELL OFF SCREEN AND IS BEING DELETED
 		});
 	}
 	
@@ -202,17 +207,24 @@ function sourceMovement(){
 	source.pos.x += source.speed * source.direction;
 	
 	// Check if the source has reached the screen boundaries
-	if (source.pos.x < 20 || source.pos.x > 80) {
+	if(source.pos.x < 20){
+		source.direction = 1;
+	}
+	if (source.pos.x > 80) {
 		// Reverse the direction when the source reaches a boundary
-		source.direction *= -1;
+		source.direction = -1;
 	}
 	// Add a random value within the stutter range to the position
 
 	if(source.pos.x > 1+source.stutter && source.pos.x < 100-source.stutter){//if in range where game won't break		
-		source.pos.x += rnd(source.stutter*-1, source.stutter);
+		if(stutterCounter=3){
+			source.pos.x += rnd(source.stutter*-1, source.stutter);
+			stutterCounter =0;
+		}
+		stutterCounter++;
 	}
 
-	return box(source.pos, 3);
+	return box(source.pos, {x: 9, y: 3});
 }
 
   
