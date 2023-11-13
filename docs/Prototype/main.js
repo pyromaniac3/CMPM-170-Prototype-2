@@ -55,10 +55,14 @@ let drops;
 let drip = .2;
 
 //GOAL LINE
+let distFromTop = topY + 5// change number move line further down cup
+/** @type {{tier:number}} */
 let water_line; 
 
 //BOTTLE THINGS
 /** @type {{ pos: Vector, height: number, width: number}}*/
+let bottleFill;
+/** @type {{pos: Vector, height: number, width: number}} */
 let bottle;
 
 // Water physics constants
@@ -86,15 +90,24 @@ function update() {
 		// Initialize a list of lists with the specified number of empty lists
 		tiers = new Array(cup.layers).fill().map(() => []);
 		// Initial Bottle position and height
-		bottle = {
-			pos: vec(3, 15),
-			height: 31,
-			width: 8
+		bottleFill = {
+			// note if the cork isnt centered, just just... add a one or something itll be close enough
+			// changing these values will move the entire bottle 
+			pos: vec(3,15),
+			// you can scale it too and its fine
+			height: 32,
+			width: 10
 		}
-
-		//constants for static bottle size
-		
-
+		bottle ={
+			pos: vec(bottleFill.pos.x,bottleFill.pos.y-1),
+			height: bottleFill.height + 2,
+			width: bottleFill.width + 2
+		}
+		water_line = {
+			// this number moves the water line down from the top of the cup
+			tier: floor((bottomY-distFromTop)/3)-1  // the number of tiers to fill the cup
+			// note 3 is currently the hard size of the droplets so each tier is 3 pixels high
+		}
 	}
 	//BACKGROUND STUFF
 	color("white");
@@ -102,22 +115,24 @@ function update() {
 	color("light_black");
 	rect(0,70,100,30);
 
-	//WATER LIMIT LINE
-	color("red");
-	line(vec(35,65),vec(65,65),1);
-
 	//BOTTLE SHENANIGANS
+	// the neck
 	color("green");
-	char("b", 8, 12); // shape of the curve
-	rect(7, 7, 2, 3); // shape of the bottle neck
-	line(vec(5,16),vec(12,16)); // some bullshit to make the curve look smoother
-	line(vec(6,15),vec(11,15)); // some bullshit to make the curve look smoother
+	box(bottle.pos.x+bottle.width/2, bottle.pos.y-6, bottle.width/2-2,6);
+	// making the curve
 	color("green");
-	rect(3, 15, 10, 31); // bottle
+	line(bottle.pos.x +4 ,bottle.pos.y-1 , bottle.pos.x + bottle.width -3, bottle.pos.y-1); 
+	color("green");
+	line(bottle.pos.x +3 ,bottle.pos.y , bottle.pos.x + bottle.width -2, bottle.pos.y); 
+	color("green");
+	// the bottle base
+	rect(bottle.pos.x, bottle.pos.y, bottle.width, bottle.height); // bottle
+	// the back fill
 	color("black");
-	rect(4, 15, 8, 30); // back fill
+	rect(bottle.pos.x+1, bottle.pos.y+1, bottle.width-2, bottle.height-3); // back fill
+	// the water fill
 	color("blue");
-	rect(bottle.pos.x+1, bottle.pos.y, bottle.width, bottle.height); // water fill
+	rect(bottleFill.pos.x+1, bottleFill.pos.y, bottleFill.width, bottleFill.height); // water fill
 
 	//CUP SHENANIGANS//
 	color("cyan");
@@ -127,7 +142,12 @@ function update() {
 	color("green");
 	source.sprite = sourceMovement();
 
+	//WATER LIMIT LINE
+	color("red");
+	line(vec(50 - topDistance, distFromTop),vec(50 + topDistance, distFromTop),1);
 
+
+	console.log(tier);
 	if(input.isPressed){
 		if (dropCounter == 10) { //reduces amount of water coming out of source
 			// This block will execute as long as the counter is less than 10
@@ -139,9 +159,10 @@ function update() {
 		dropCounter++;
 
 		//Water Amount decreasing
-		bottle.height -= 0.05;
-		bottle.pos.y += 0.05; // Adjust the position to move the rectangle up
-		if(bottle.height <=0){
+		bottleFill.height -= 0.05;
+		bottleFill.pos.y += 0.05; // Adjust the position to move the rectangle up
+		//if you run out of liquid game over
+		if(bottleFill.height <=0){
 			end();
 		}
 	}
@@ -166,9 +187,9 @@ function update() {
 		if ((d.y > bottomY - tier*3 -6 && d.y < bottomY - tier*3+3) && (d.x > 50 - topDistance && d.x < 50 + topDistance)) {
 
 			// If tier is full, move to the next empty tier
-			console.log(Math.round(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance)));
+			//console.log(Math.round(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance)));
 			if(tiers[tier].length >= Math.ceil(1/surfaceTension) + Math.ceil(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance))) {
-				if((tier == 7)){
+				if((tier == water_line.tier)){
 					//win game
 					console.log("you won");
 				}
