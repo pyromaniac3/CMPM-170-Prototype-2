@@ -1,7 +1,9 @@
 //http://localhost:4000/?prototype
-title = "";
+title = "Bartending Sim";
 
 description = `
+	Tap to 
+	Pour Drink
 `;
 
 characters = [
@@ -11,6 +13,12 @@ characters = [
    l l
    l l
     l
+  `,
+  `
+ llll
+llllll
+llllll
+llllll 
   `
 ];
 
@@ -31,9 +39,9 @@ let destination ={
 };
 //CUP THINGS
 let countedDroplets = [];
-let topY = 30; //middle of the screen
-let bottomY = 60; //where the horizontal bottom of cup lies on y axis
-let topDistance=18; // distance between the lines on top part of cup
+let topY = 60; //middle of the screen
+let bottomY = 90; //where the horizontal bottom of cup lies on y axis
+let topDistance=15; // distance between the lines on top part of cup
 let bottomDistance=12; // distance between the lines on bottom part of cup
 let cup = {
 	slant: (topDistance - bottomDistance) / (bottomY - topY)
@@ -45,6 +53,13 @@ let inCup;
 /** @type {Vector[]} */
 let drops;
 let drip = .2;
+
+//GOAL LINE
+let water_line; 
+
+//BOTTLE THINGS
+/** @type {{ pos: Vector, height: number, width: number}}*/
+let bottle;
 
 // Water physics constants
 const gravity = 0.2; // Gravity force
@@ -62,22 +77,56 @@ function update() {
 		//temporary
 		drops = [];
 		source.pos = vec(50,20); //initial starting position
-		color("black");
-		source.sprite = box(source.pos, {x: 9, y: 3});
+		color("green");
+		source.sprite = box(source.pos, {x: 5, y: 6});
 		destination = addWithCharCode(characters[0], 0);
 		destination.pos = vec(40,50);
 		// Calculate the number of layers (height) based on the given dimensions
 		cup.layers = bottomY - topY;
 		// Initialize a list of lists with the specified number of empty lists
 		tiers = new Array(cup.layers).fill().map(() => []);
+		// Initial Bottle position and height
+		bottle = {
+			pos: vec(3, 15),
+			height: 31,
+			width: 8
+		}
+
+		//constants for static bottle size
+		
+
 	}
+	//BACKGROUND STUFF
+	color("white");
+	rect(0,0,100,100);
+	color("light_black");
+	rect(0,70,100,30);
+
+	//WATER LIMIT LINE
+	color("red");
+	line(vec(35,65),vec(65,65),1);
+
+	//BOTTLE SHENANIGANS
+	color("green");
+	char("b", 8, 12); // shape of the curve
+	rect(7, 7, 2, 3); // shape of the bottle neck
+	line(vec(5,16),vec(12,16)); // some bullshit to make the curve look smoother
+	line(vec(6,15),vec(11,15)); // some bullshit to make the curve look smoother
+	color("green");
+	rect(3, 15, 10, 31); // bottle
+	color("black");
+	rect(4, 15, 8, 30); // back fill
+	color("blue");
+	rect(bottle.pos.x+1, bottle.pos.y, bottle.width, bottle.height); // water fill
+
 	//CUP SHENANIGANS//
 	color("cyan");
 	cup.left = line(vec(50 - topDistance, topY), vec(50 - bottomDistance,bottomY)); //left side, top -> bottom
 	cup.right = line(vec(50 + topDistance, topY), vec(50 + bottomDistance,bottomY)); //right side
 	cup.bottom = line(vec(50 - bottomDistance, bottomY),vec(50 + bottomDistance, bottomY)); //bottom horizontal, //left -> right
-	color("black");
+	color("green");
 	source.sprite = sourceMovement();
+
 
 	if(input.isPressed){
 		if (dropCounter == 10) { //reduces amount of water coming out of source
@@ -88,6 +137,13 @@ function update() {
 			dropCounter = 0;
 		}
 		dropCounter++;
+
+		//Water Amount decreasing
+		bottle.height -= 0.05;
+		bottle.pos.y += 0.05; // Adjust the position to move the rectangle up
+		if(bottle.height <=0){
+			end();
+		}
 	}
 
 	if (drops) {
@@ -106,13 +162,19 @@ function update() {
 			  d.x -= 1*cup.slant;
 			}
 		  }
-
+ 
 		if ((d.y > bottomY - tier*3 -6 && d.y < bottomY - tier*3+3) && (d.x > 50 - topDistance && d.x < 50 + topDistance)) {
 
 			// If tier is full, move to the next empty tier
 			console.log(Math.round(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance)));
 			if(tiers[tier].length >= Math.ceil(1/surfaceTension) + Math.ceil(((bottomDistance*2))/3+(tier*2/cup.layers)*(topDistance-bottomDistance))) {
-				tier++;
+				if((tier == 7)){
+					//win game
+					console.log("you won");
+				}
+				else{
+					tier++;
+				}
 			}
 			if (tier !== -1) {
 				//IF IT GETS HERE THAT MEANS THE WATER DROPLET HAS OFFICIALLY ENTERED THE CUP
@@ -233,5 +295,5 @@ function sourceMovement(){
 		stutterCounter++;
 	}
 
-	return box(source.pos, {x: 9, y: 3});
+	return box(source.pos, {x: 5, y: 6});
 }
